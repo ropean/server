@@ -42,7 +42,7 @@ set -euo pipefail
 # -----------------------------
 OUTDIR="/var/log/ir_report_$(date +%F_%H%M%S)"
 mkdir -p "$OUTDIR"
-LOG="$OUTDIR/report.log"
+LOG="$OUTDIR/run.log"
 echo "[*] Report directory: $OUTDIR"
 
 log(){ echo "[$(date +%T)] $*" | tee -a "$LOG"; }
@@ -156,15 +156,15 @@ save "chkrootkit_scan" sh -c 'chkrootkit || true'
 # -----------------------------
 # Step 13: Package report
 # -----------------------------
-# ARCHIVE="${OUTDIR}.tar.gz"
-# tar -C "$(dirname "$OUTDIR")" -czf "$ARCHIVE" "$(basename "$OUTDIR")"
-# log "[*] Report generated: $ARCHIVE"
+ARCHIVE="${OUTDIR}.tar.gz"
+tar -C "$(dirname "$OUTDIR")" -czf "$ARCHIVE" "$(basename "$OUTDIR")"
+log "[*] Report generated: $ARCHIVE"
 
 # -----------------------------
 # Step 14: Summary
 # -----------------------------
 log "[*] Summary:"
-log "  Report file: $OUTDIR/report.log"
-# log "  Report archive: $ARCHIVE"
+log "  Report directory: $OUTDIR"
+log "  Report archive: $ARCHIVE"
 log "  Included: system info, users, auth, ssh, processes, cron, network, firewall, suid files, tmp files, nginx configs, suspicious processes/files, rootkit scan"
 log "[*] Done. Review the report carefully. Consider manual investigation for any suspicious findings."
