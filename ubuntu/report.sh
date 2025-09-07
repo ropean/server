@@ -33,7 +33,7 @@
 #
 # =====================================================================
 #  USAGE:
-#    curl -sSL https://raw.githubusercontent.com/ropean/server/main/report.sh | sudo bash
+#    curl -sSL https://raw.githubusercontent.com/ropean/server/main/ubuntu/report.sh | sudo bash
 # =====================================================================
 
 set -euo pipefail
