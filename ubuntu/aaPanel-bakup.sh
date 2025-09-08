@@ -113,7 +113,8 @@ get_mysql_password() {
     # 循环提示用户输入密码，最多尝试3次
     while [[ $attempt -le $max_attempts ]]; do
         echo -n "请输入MySQL root密码 (尝试 $attempt/$max_attempts): "
-        read -s MYSQL_PASS  # -s参数隐藏输入内容
+        # 确保在交互式 shell（本地登录或 ssh 终端）直接运行脚本
+        read -s MYSQL_PASS < /dev/tty  # -s参数隐藏输入内容
         echo  # 换行
         
         # 验证密码是否正确
