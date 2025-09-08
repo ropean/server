@@ -532,8 +532,8 @@ main() {
     check_aapanel
     create_backup_dir
     
-    backup_websites
     backup_databases
+    backup_websites
     backup_panel_config
     backup_webserver_config
     backup_php_config
