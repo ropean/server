@@ -100,26 +100,41 @@ create_backup_dir() {
     log_info "备份目录创建完成: $BACKUP_DIR"
 }
 
-# 获取MySQL root密码
+# 获取MySQL root密码函数
+# 功能：提示用户输入MySQL root密码，并验证连接有效性
+# 返回：设置全局变量MYSQL_PASS为有效的MySQL密码
 get_mysql_password() {
-    MYSQL_PASS=""
+    local max_attempts=3  # 最大尝试次数
+    local attempt=1       # 当前尝试次数
+    MYSQL_PASS=""        # 全局变量存储密码
     
-    # 尝试从aaPanel配置文件获取MySQL密码
-    if [[ -f "/www/server/panel/data/default.db" ]]; then
-        # 尝试使用sqlite3读取密码
-        if command -v sqlite3 >/dev/null 2>&1; then
-            MYSQL_PASS=$(sqlite3 /www/server/panel/data/default.db "SELECT mysql_root FROM config WHERE id=1;" 2>/dev/null || echo "")
-        fi
-    fi
+    log_info "开始获取MySQL root密码..."
     
-    # 如果无法获取密码，尝试空密码或提示用户输入
-    if [[ -z "$MYSQL_PASS" ]]; then
-        log_warn "无法自动获取MySQL密码，尝试使用空密码..."
-        if ! mysqladmin ping -u root --password="" >/dev/null 2>&1; then
-            log_warn "空密码连接失败，请手动输入MySQL root密码:"
-            read -s MYSQL_PASS
+    # 循环提示用户输入密码，最多尝试3次
+    while [[ $attempt -le $max_attempts ]]; do
+        echo -n "请输入MySQL root密码 (尝试 $attempt/$max_attempts): "
+        read -s MYSQL_PASS  # -s参数隐藏输入内容
+        echo  # 换行
+        
+        # 验证密码是否正确
+        log_info "验证MySQL密码..."
+        if mysqladmin ping -u root --password="$MYSQL_PASS" >/dev/null 2>&1; then
+            log_success "MySQL密码验证成功"
+            return 0
+        else
+            log_error "MySQL密码验证失败"
+            if [[ $attempt -lt $max_attempts ]]; then
+                log_warn "密码错误，请重新输入"
+            fi
         fi
-    fi
+        
+        ((attempt++))
+    done
+    
+    # 所有尝试都失败
+    log_error "MySQL密码验证失败，已达到最大尝试次数($max_attempts)"
+    log_error "请检查MySQL服务状态或密码是否正确"
+    return 1
 }
 
 # 备份网站文件
