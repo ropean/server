@@ -163,34 +163,46 @@ backup_databases() {
     
     get_mysql_password
     
-    # 测试MySQL连接
-    if [[ -n "$MYSQL_PASS" ]]; then
-        MYSQL_CMD="mysql -u root -p$MYSQL_PASS"
-        MYSQLDUMP_CMD="mysqldump -u root -p$MYSQL_PASS"
-    else
-        MYSQL_CMD="mysql -u root"
-        MYSQLDUMP_CMD="mysqldump -u root"
+    if [ $? -ne 0 ]; then
+        log_error "获取MySQL密码失败，跳过数据库备份"
+        return 1
     fi
     
-    if $MYSQL_CMD -e "SELECT 1;" >/dev/null 2>&1; then
+    # 使用环境变量传递密码（避免特殊字符问题）
+    export MYSQL_PWD="$MYSQL_PASS"
+    
+    # 测试MySQL连接
+    if mysql -u root -e "SELECT 1;" >/dev/null 2>&1; then
+        log_info "MySQL连接测试成功，开始备份数据库..."
+        
         # 备份所有数据库
-        $MYSQLDUMP_CMD --all-databases --single-transaction --routines --triggers > "$BACKUP_DIR/all_databases.sql" 2>/dev/null
+        mysqldump -u root --all-databases --single-transaction --routines --triggers > "$BACKUP_DIR/all_databases.sql" 2>/dev/null
         
         # 单独备份每个数据库
         mkdir -p "$BACKUP_DIR/databases"
-        databases=$($MYSQL_CMD -e "SHOW DATABASES;" | grep -Ev '^(Database|information_schema|performance_schema|mysql|sys)$')
+        databases=$(mysql -u root -e "SHOW DATABASES;" | grep -Ev '^(Database|information_schema|performance_schema|mysql|sys)$')
         
         for db in $databases; do
-            if [[ "$db" != "information_schema" && "$db" != "performance_schema" && "$db" != "mysql" && "$db" != "sys" ]]; then
-                $MYSQLDUMP_CMD --single-transaction --routines --triggers "$db" > "$BACKUP_DIR/databases/${db}.sql" 2>/dev/null
-                log_info "数据库 $db 备份完成"
+            if [[ -n "$db" ]]; then
+                mysqldump -u root --single-transaction --routines --triggers "$db" > "$BACKUP_DIR/databases/${db}.sql" 2>/dev/null
+                if [ $? -eq 0 ]; then
+                    log_info "数据库 $db 备份完成"
+                else
+                    log_error "数据库 $db 备份失败"
+                fi
             fi
         done
         
-        log_info "数据库备份完成"
+        log_success "数据库备份完成"
     else
         log_error "无法连接到MySQL数据库，跳过数据库备份"
+        # 取消环境变量设置
+        unset MYSQL_PWD
+        return 1
     fi
+    
+    # 清理环境变量
+    unset MYSQL_PWD
 }
 
 # 备份aaPanel面板配置
