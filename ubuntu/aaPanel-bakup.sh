@@ -2,7 +2,7 @@
 
 # aaPanel 完整备份脚本
 # 支持Ubuntu/Debian和CentOS/RHEL系统
-# 使用方法: curl -sSL https://raw.githubusercontent.com/ropean/server/main/ubuntu/aaPanel-bakup.sh | sudo bash
+# 使用方法: curl -sSL "https://raw.githubusercontent.com/ropean/server/main/ubuntu/aaPanel-bakup.sh?$(uuidgen)" | sudo bash
 
 # 备份文件结构
 # /root/aapanel_backup/backup_YYYYMMDD_HHMMSS/

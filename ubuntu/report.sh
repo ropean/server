@@ -31,7 +31,7 @@
 #    [x] Rootkit scan (rkhunter, chkrootkit)
 # =====================================================================
 #  Usage:
-#    curl -sSL https://raw.githubusercontent.com/ropean/server/main/ubuntu/report.sh | sudo bash
+#    curl -sSL "https://raw.githubusercontent.com/ropean/server/main/ubuntu/report.sh?$(uuidgen)" | sudo bash
 #    Report archive will be in /var/log/ir_report_<datetime>.tar.gz
 # =====================================================================
 
