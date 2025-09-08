@@ -138,23 +138,9 @@ get_mysql_password() {
     return 1
 }
 
-# 备份网站文件
-backup_websites() {
-    log_step "1. 备份网站文件..."
-    if [[ -d "/www/wwwroot" ]]; then
-        cd /www
-        tar --exclude='*.log' --exclude='*.tmp' -czf "$BACKUP_DIR/websites.tar.gz" wwwroot/ 2>/dev/null || {
-            log_warn "网站文件备份过程中出现警告，但继续执行"
-        }
-        log_info "网站文件备份完成"
-    else
-        log_warn "未找到网站目录 /www/wwwroot"
-    fi
-}
-
 # 备份数据库
 backup_databases() {
-    log_step "2. 备份数据库..."
+    log_step "1. 备份数据库..."
     
     if ! command -v mysqldump >/dev/null 2>&1; then
         log_warn "未找到mysqldump命令，跳过数据库备份"
@@ -203,6 +189,20 @@ backup_databases() {
     
     # 清理环境变量
     unset MYSQL_PWD
+}
+
+# 备份网站文件
+backup_websites() {
+    log_step "2. 备份网站文件..."
+    if [[ -d "/www/wwwroot" ]]; then
+        cd /www
+        tar --exclude='*.log' --exclude='*.tmp' -czf "$BACKUP_DIR/websites.tar.gz" wwwroot/ 2>/dev/null || {
+            log_warn "网站文件备份过程中出现警告，但继续执行"
+        }
+        log_info "网站文件备份完成"
+    else
+        log_warn "未找到网站目录 /www/wwwroot"
+    fi
 }
 
 # 备份aaPanel面板配置
@@ -524,7 +524,7 @@ EOF
 main() {
     echo -e "${BLUE}"
     echo "========================================"
-    echo "       aaPanel 完整备份脚本 v2.0"
+    echo "         aaPanel 完整备份脚本            "
     echo "========================================"
     echo -e "${NC}"
     
